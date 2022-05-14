@@ -11,7 +11,6 @@ const toThousand = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const controller = {
 	// Root - Show all products
 	index: (req, res) => {
-		// let allProducts = JSON.parse(fs.readFileSync(productsFilePath, 'UTF-8'))
 		res.render('products', {
 			products: products
 		})
@@ -43,10 +42,10 @@ const controller = {
 			discount: parseInt(req.body.discount),
 			category: req.body.category,
 			description: req.body.description,
-			img: 'Placeholder del url img' //FALTA AGREGAR UNA FORMA DE SUBIR IMAGENES Y GESTIONARLAS (CRUD EP2)
+			image: req.file.filename
 		}
 		products.push(newProduct)
-		fs.writeFileSync(productsFilePath,JSON.stringify(products));
+		fs.writeFileSync(productsFilePath,JSON.stringify(products, null,'\t'));
 		res.redirect('/products/details/'+ newProduct.id)
 	},
 
@@ -61,15 +60,14 @@ const controller = {
 	update: (req, res) => {
 		products.forEach (element => {
 			if(element.id === parseInt(req.params.id)) {
-				element.name = req.body.name.length == 0 ? element.name: req.body.name;
-				element.price = req.body.price > 0 ? parseInt(req.body.price): element.price;
-				element.discount = req.body.discount > 0 ? parseInt(req.body.discount): element.price;
-				element.description = req.body.description.length == 0 ? element.description: req.body.description;
+				element.name = req.body.name == "" ? element.name : req.body.name;
+				element.price = req.body.price == "" ? element.price : parseInt(req.body.price);
+				element.discount = req.body.discount == "" ? element.discount : parseInt(req.body.discount);
+				element.description = req.body.description == ""? element.description: req.body.description;
+				element.image = req.file.filename == ""? element.image: req.file.filename;
 			};
-
-			fs.writeFileSync(productsFilePath,JSON.stringify(products));
 		})
-		fs.readFileSync(productsFilePath, 'UTF-8');
+		fs.writeFileSync(productsFilePath,JSON.stringify(products, null, '\t'));
 		res.redirect('/products/details/'+ req.params.id)
 		// Do the magic
 	},
@@ -80,7 +78,7 @@ const controller = {
 			return element.id != req.params.id
 		})
 		products = productsUpdate
-		fs.writeFileSync(productsFilePath,JSON.stringify(productsUpdate));
+		fs.writeFileSync(productsFilePath,JSON.stringify(productsUpdate, null, '\t'));
 		res.redirect('/products');
 	}
 };
